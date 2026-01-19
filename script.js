@@ -2,7 +2,7 @@
 const LIFF_ID = "2008918191-8EM4f0JH"; 
 // =========================================
 
-// Resistor Data
+// Resistor Data (保持不變)
 const resistorData = {
     black:  { hex: '#212121', name: '黑', val: 0, mult: 1, tol: null },
     brown:  { hex: '#795548', name: '棕', val: 1, mult: 10, tol: 1 },
@@ -30,6 +30,9 @@ const els = {
     captureArea: document.getElementById('capture-area')
 };
 
+// 全域變數儲存圖片 Blob
+let currentImageBlob = null;
+
 function initControls() {
     const createOption = (key, data) => {
         const opt = document.createElement('option');
@@ -47,7 +50,6 @@ function initControls() {
         });
         sel.addEventListener('change', calculate);
     });
-    // Default: 10k 5%
     ['brown', 'black', 'black', 'red', 'gold'].forEach((v, i) => els.selects[i].value = v);
 }
 
@@ -74,17 +76,17 @@ function calculate() {
     return { displayVal, tol: d[4].tol, colors: d.map(x => x.hex) };
 }
 
-// ========== LIFF 初始化 ==========
 async function initLiff() {
     try {
         await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser: false });
         if (liff.isLoggedIn()) {
-            updateStatus(true, "LIFF 已連線 (已登入)");
+            updateStatus(true, "LIFF 已連線 (v4.0 Debug)");
         } else {
-            updateStatus(false, "訪客模式");
+            updateStatus(false, "訪客模式 (v4.0 Debug)");
         }
     } catch (err) {
-        updateStatus(false, "初始化失敗", true);
+        updateStatus(false, "初始化失敗: " + err.message, true);
+        alert("LIFF 初始化錯誤: " + err.message);
     }
 }
 
@@ -93,20 +95,21 @@ function updateStatus(isOnline, text, isError = false) {
     els.statusDot.className = 'status-dot ' + (isError ? 'error' : (isOnline ? 'active' : ''));
 }
 
-// ========== 功能 1: Flex Message 分享 ==========
+// ========== Debug 版 Flex Message ==========
 async function shareFlexMsg() {
     if (!liff.isLoggedIn()) {
-        if(confirm("Flex 分享需要登入 LINE，是否前往登入？")) liff.login();
+        liff.login(); return;
+    }
+
+    // 檢查 API 是否可用
+    if (!liff.isApiAvailable('shareTargetPicker')) {
+        alert("錯誤：您的 LINE 版本或此 LIFF 設定不支援 shareTargetPicker API。請檢查 Developer Console 的權限。");
         return;
     }
 
     const result = calculate();
-    
-    // 安全的顏色球結構
     const colorBoxes = result.colors.map(hex => ({
-        type: "box",
-        layout: "vertical",
-        backgroundColor: hex,
+        type: "box", layout: "vertical", backgroundColor: hex,
         width: "16px", height: "16px", cornerRadius: "16px",
         margin: "sm", borderColor: "#dddddd", borderWidth: "1px"
     }));
@@ -116,93 +119,92 @@ async function shareFlexMsg() {
         altText: `電阻計算結果：${result.displayVal}`,
         contents: {
             type: "bubble",
-            size: "kilo",
             body: {
-                type: "box",
-                layout: "vertical",
+                type: "box", layout: "vertical",
                 contents: [
-                    { type: "text", text: "五環電阻計算器", weight: "bold", color: "#06c755", size: "xs" },
-                    { type: "text", text: result.displayVal, weight: "bold", size: "3xl", margin: "md" },
+                    { type: "text", text: "電阻計算結果", weight: "bold", color: "#06c755", size: "sm" },
+                    { type: "text", text: result.displayVal, weight: "bold", size: "xxl", margin: "md" },
                     { type: "text", text: `誤差 ±${result.tol}%`, size: "sm", color: "#888888", margin: "xs" },
-                    { type: "separator", margin: "lg" },
-                    {
-                        type: "box",
-                        layout: "horizontal",
-                        margin: "lg",
-                        justifyContent: "center",
-                        contents: colorBoxes
-                    }
+                    { type: "box", layout: "horizontal", margin: "lg", justifyContent: "center", contents: colorBoxes }
                 ]
-            },
-            footer: {
-                type: "box",
-                layout: "vertical",
-                contents: [{
-                    type: "button",
-                    action: { type: "uri", label: "我也要算", uri: "https://liff.line.me/" + LIFF_ID },
-                    style: "primary",
-                    color: "#06c755",
-                    height: "sm"
-                }]
             }
         }
     };
 
     try {
+        console.log("正在發送 Flex...");
         const res = await liff.shareTargetPicker([flexMsg]);
-        if (res) alert("Flex 卡片分享成功！");
+        if (res) {
+            alert("Flex 發送成功！"); // 如果這裡跳出來但沒收到，就是 JSON 格式被 LINE 濾掉了
+        } else {
+            alert("使用者關閉了分享視窗");
+        }
     } catch (err) {
-        alert("分享失敗: " + err.message);
+        alert("Flex 發送報錯: " + err.code + "\n" + err.message);
     }
 }
 
-// ========== 功能 2: 原生圖片分享 (Native Share) ==========
-async function nativeShareImage() {
+// ========== 兩段式圖片分享 (解決手機延遲問題) ==========
+async function prepareAndShareImage() {
     const btn = els.btnImg;
+    
+    // 狀態 1: 如果按鈕顯示「確認分享」，代表圖片已準備好，直接呼叫原生分享
+    if (btn.dataset.ready === "true" && currentImageBlob) {
+        try {
+            const file = new File([currentImageBlob], "resistor.png", { type: "image/png" });
+            const shareData = { files: [file], title: '電阻計算結果' };
+            
+            if (navigator.canShare && navigator.canShare(shareData)) {
+                await navigator.share(shareData); // 這裡不會有延遲，因為圖片早就好了
+                // 分享後重置按鈕
+                resetImgBtn();
+            } else {
+                throw new Error("不支援分享");
+            }
+        } catch (err) {
+            // 如果原生分享失敗，改為下載
+            const link = document.createElement('a');
+            link.download = 'resistor.png';
+            link.href = URL.createObjectURL(currentImageBlob);
+            link.click();
+            resetImgBtn();
+        }
+        return;
+    }
+
+    // 狀態 2: 第一次點擊，開始截圖
     const originalText = btn.innerHTML;
-    btn.innerHTML = '處理中...';
+    btn.innerHTML = '📷 截圖運算中...';
     btn.disabled = true;
 
     try {
         const canvas = await html2canvas(els.captureArea, { scale: 3, backgroundColor: "#ffffff" });
-        canvas.toBlob(async (blob) => {
-            if (!blob) throw new Error("圖片產生失敗");
-
-            const file = new File([blob], "resistor.png", { type: "image/png" });
-            const shareData = {
-                files: [file],
-                title: '電阻計算結果',
-                text: `${els.val.textContent}`
-            };
-
-            if (navigator.canShare && navigator.canShare(shareData)) {
-                try {
-                    await navigator.share(shareData);
-                    btn.innerHTML = '分享完成';
-                } catch (err) {
-                    console.log("分享取消"); // 使用者取消不報錯
-                }
-            } else {
-                // 電腦版 Fallback: 下載
-                const link = document.createElement('a');
-                link.download = 'resistor.png';
-                link.href = canvas.toDataURL();
-                link.click();
-                alert("已為您下載圖片");
-            }
-
-            setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
+        canvas.toBlob((blob) => {
+            currentImageBlob = blob;
+            // 截圖完成，改變按鈕狀態，讓使用者點第二次
+            btn.innerHTML = '🚀 點此發送圖片';
+            btn.dataset.ready = "true"; // 標記為準備就緒
+            btn.style.backgroundColor = "#ff9800"; // 換個顏色提示
+            btn.disabled = false;
         }, 'image/png');
     } catch (err) {
-        alert("錯誤: " + err.message);
-        btn.innerHTML = originalText;
-        btn.disabled = false;
+        alert("截圖失敗: " + err.message);
+        resetImgBtn();
     }
+}
+
+function resetImgBtn() {
+    const btn = els.btnImg;
+    btn.innerHTML = '<span class="icon">🖼️</span> 產生圖片並分享';
+    btn.dataset.ready = "false";
+    btn.style.backgroundColor = ""; // 恢復原色
+    btn.disabled = false;
+    currentImageBlob = null;
 }
 
 // 綁定事件
 els.btnFlex.addEventListener('click', shareFlexMsg);
-els.btnImg.addEventListener('click', nativeShareImage);
+els.btnImg.addEventListener('click', prepareAndShareImage);
 
 window.onload = () => {
     initControls();
