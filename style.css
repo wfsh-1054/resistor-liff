@@ -1,257 +1,76 @@
 :root {
     --bg-color: #f2f4f8;
     --card-bg: #ffffff;
-    --primary-color: #00b900; /* LINE Green */
+    --primary-color: #06c755; /* LINE Green */
+    --secondary-color: #6c757d;
     --text-color: #333;
     --resistor-body: #e6dcc8;
-    --shadow-soft: 0 8px 24px rgba(0,0,0,0.08);
 }
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background-color: var(--bg-color);
-    margin: 0;
-    padding: 20px;
-    display: flex;
-    justify-content: center;
+    margin: 0; padding: 20px;
+    display: flex; justify-content: center;
     color: var(--text-color);
 }
 
 .container {
-    width: 100%;
-    max-width: 480px;
+    width: 100%; max-width: 480px;
     background: var(--card-bg);
-    padding: 24px;
-    border-radius: 20px;
-    box-shadow: var(--shadow-soft);
+    padding: 24px; border-radius: 20px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
 }
 
-header h2 {
-    text-align: center;
-    margin: 0 0 20px 0;
-    font-size: 1.5rem;
-    color: #444;
-}
+header h2 { text-align: center; margin: 0 0 20px 0; font-size: 1.5rem; color: #444; }
 
-/* 電阻視覺化與結果卡片 */
+/* 卡片與視覺化 */
 .card {
-    background: #fff;
-    border: 1px solid #eee;
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 24px;
+    background: #fff; border: 1px solid #eee;
+    border-radius: 16px; padding: 20px; margin-bottom: 24px;
 }
-
 .resistor-visual {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 90px;
-    margin-bottom: 15px;
+    display: flex; align-items: center; justify-content: center;
+    height: 90px; margin-bottom: 15px;
 }
-
-.wire {
-    height: 6px;
-    width: 40px;
-    background: linear-gradient(to bottom, #cfcfcf, #999, #cfcfcf);
-}
-
+.wire { height: 6px; width: 40px; background: linear-gradient(#cfcfcf, #999, #cfcfcf); }
 .body {
-    width: 240px;
-    height: 70px;
-    background: var(--resistor-body);
-    border-radius: 35px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 28px;
-    box-shadow: inset 0 -6px 8px rgba(0,0,0,0.1);
-    position: relative;
-    overflow: hidden;
+    width: 240px; height: 70px; background: var(--resistor-body);
+    border-radius: 35px; display: flex; justify-content: space-between; align-items: center;
+    padding: 0 28px; box-shadow: inset 0 -6px 8px rgba(0,0,0,0.1);
+    position: relative; overflow: hidden;
 }
+.band { width: 14px; height: 100%; box-shadow: 0 0 4px rgba(0,0,0,0.2); }
+.band.b5 { margin-left: 20px; }
 
-/* 色環樣式：使用漸層模擬立體感 */
-.band {
-    width: 14px;
-    height: 100%;
-    box-shadow: 0 0 4px rgba(0,0,0,0.2);
-}
+.result-display { text-align: center; background: #f8f9fa; padding: 12px; border-radius: 12px; }
+.val { display: block; font-size: 2rem; font-weight: 800; color: #2c3e50; }
+.tol { font-size: 1rem; color: #7f8c8d; }
 
-.band.b5 {
-    margin-left: 20px; /* 誤差環離遠一點 */
-}
-
-.result-display {
-    text-align: center;
-    background-color: #f8f9fa;
-    padding: 12px;
-    border-radius: 12px;
-}
-
-.val {
-    display: block;
-    font-size: 2rem;
-    font-weight: 800;
-    color: #2c3e50;
-    line-height: 1.2;
-}
-
-.tol {
-    font-size: 1rem;
-    color: #7f8c8d;
-}
-
-/* 控制區域 */
-.controls {
-    display: grid;
-    gap: 12px;
-    margin-bottom: 24px;
-}
-
-.control-item {
-    display: flex;
-    flex-direction: column;
-}
-
-label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #666;
-    margin-bottom: 4px;
-}
-
+/* 選單 */
+.controls { display: grid; gap: 12px; margin-bottom: 24px; }
+.control-item { display: flex; flex-direction: column; }
+label { font-size: 0.85rem; font-weight: 600; color: #666; margin-bottom: 4px; }
 select {
-    width: 100%;
-    padding: 12px;
-    border-radius: 10px;
-    border: 1px solid #ddd;
-    background-color: #fff;
-    font-size: 1rem;
-    appearance: none; /* 移除預設箭頭 */
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 16px;
+    width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd;
+    background: #fff; font-size: 1rem; appearance: none;
 }
 
-/* 按鈕樣式 */
-.btn-group {
-    display: grid;
-    gap: 12px;
-}
-
+/* 按鈕群組 */
+.btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .btn {
-    width: 100%;
-    padding: 14px;
-    border: none;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.1s, opacity 0.2s;
+    width: 100%; padding: 14px; border: none; border-radius: 12px;
+    font-size: 0.95rem; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: 0.2s;
 }
-
-.btn:active {
-    transform: scale(0.98);
-}
-
-.btn-line {
-    background-color: var(--primary-color);
-    color: white;
-}
-
-.btn-secondary {
-    background-color: #e9ecef;
-    color: #495057;
-}
-
-.icon {
-    margin-right: 8px;
-}
+.btn:active { transform: scale(0.96); }
+.btn-line { background-color: var(--primary-color); color: white; }
+.btn-secondary { background-color: var(--secondary-color); color: white; }
+.icon { margin-right: 6px; }
 
 /* 狀態列 */
-#status-bar {
-    margin-top: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8rem;
-    color: #aaa;
-}
-
-.status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: #ccc;
-    margin-right: 6px;
-    transition: background-color 0.3s;
-}
-
-.status-dot.active {
-    background-color: var(--primary-color);
-}
-
-.status-dot.error {
-    background-color: #e74c3c;
-}
-
-/* ... 上面原有的 CSS 保持不變 ... */
-
-/* 新增：圖片預覽彈窗 (解決手機無法下載問題) */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.85);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s;
-}
-
-.modal-overlay.show {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.modal-content {
-    background: white;
-    padding: 10px;
-    border-radius: 12px;
-    max-width: 90%;
-    text-align: center;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-}
-
-.modal-content img {
-    max-width: 100%;
-    border-radius: 8px;
-    display: block;
-}
-
-.modal-tip {
-    color: #fff;
-    margin-top: 15px;
-    font-size: 1rem;
-    font-weight: bold;
-}
-
-.close-btn {
-    margin-top: 20px;
-    padding: 8px 20px;
-    background: transparent;
-    border: 1px solid white;
-    color: white;
-    border-radius: 20px;
-    cursor: pointer;
-}
+#status-bar { margin-top: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #aaa; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; margin-right: 6px; }
+.status-dot.active { background: var(--primary-color); }
+.status-dot.error { background: #e74c3c; }
