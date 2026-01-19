@@ -3,54 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>五環電阻計算器 (GitHub Pages 版)</title>
+    <title>五環電阻計算器</title>
+    <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    
-    <style>
-        :root { --bg: #f8f9fa; --card: #ffffff; --resistor: #e0c9a6; --line-green: #00b900; }
-        body { font-family: -apple-system, sans-serif; background-color: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 15px; margin: 0; }
-        .container { background: var(--card); padding: 25px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); width: 100%; max-width: 450px; box-sizing: border-box; }
-        h2 { text-align: center; margin-top: 0; color: #333; }
-        
-        /* 電阻本體 */
-        #capture-area { background: #fff; padding: 10px; border-radius: 10px; }
-        .resistor-visual { display: flex; align-items: center; justify-content: center; height: 100px; margin-bottom: 10px; }
-        .wire { height: 6px; width: 40px; background: linear-gradient(to bottom, #ccc, #888, #ccc); }
-        .body { width: 220px; height: 70px; background: var(--resistor); border-radius: 35px; display: flex; justify-content: space-between; align-items: center; padding: 0 25px; box-shadow: inset 0 -4px 6px rgba(0,0,0,0.15); box-sizing: border-box; }
-        .band { width: 12px; height: 100%; box-shadow: inset 0 0 2px rgba(0,0,0,0.2); }
-        .b5 { margin-left: 20px; }
-
-        /* 結果顯示 */
-        .result { text-align: center; padding: 15px; background: #f0f7ff; border-radius: 10px; margin: 15px 0; border: 1px solid #d0e3ff; }
-        .val { font-size: 2em; font-weight: 800; color: #0056b3; display: block; }
-        .tol { font-size: 1.1em; color: #666; }
-
-        /* 選單控制 */
-        .controls { display: grid; grid-template-columns: 1fr; gap: 12px; }
-        .item { display: flex; flex-direction: column; }
-        label { font-size: 0.85em; font-weight: 600; color: #777; margin-bottom: 4px; }
-        select { padding: 10px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; appearance: none; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat calc(100% - 12px) center; }
-
-        /* 按鈕 */
-        .btn-group { margin-top: 25px; display: grid; gap: 12px; }
-        button { padding: 14px; border: none; border-radius: 10px; font-size: 1em; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .btn-share { background: var(--line-green); color: #fff; }
-        .btn-dl { background: #6c757d; color: #fff; }
-        button:active { transform: scale(0.98); opacity: 0.9; }
-
-        /* 狀態列 */
-        #status-bar { margin-top: 15px; font-size: 12px; color: #aaa; text-align: center; }
-        .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ccc; margin-right: 5px; }
-        .status-online { background: #28a745; }
-    </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>五環電阻計算器</h2>
+    <header>
+        <h2>五環電阻計算器</h2>
+    </header>
     
-    <div id="capture-area">
+    <div id="capture-area" class="card">
         <div class="resistor-visual">
             <div class="wire"></div>
             <div class="body">
@@ -62,147 +27,50 @@
             </div>
             <div class="wire"></div>
         </div>
-        <div class="result">
+        <div class="result-display">
             <span class="val" id="res-val">--- Ω</span>
             <span class="tol" id="res-tol">誤差 ---</span>
         </div>
     </div>
 
     <div class="controls">
-        <div class="item"><label>第一環 (十位)</label><select id="b1" onchange="calc()"></select></div>
-        <div class="item"><label>第二環 (個位)</label><select id="b2" onchange="calc()"></select></div>
-        <div class="item"><label>第三環 (小數)</label><select id="b3" onchange="calc()"></select></div>
-        <div class="item"><label>第四環 (倍率)</label><select id="b4" onchange="calc()"></select></div>
-        <div class="item"><label>第五環 (誤差)</label><select id="b5" onchange="calc()"></select></div>
+        <div class="control-item">
+            <label>第一環 (十位)</label>
+            <select id="b1"></select>
+        </div>
+        <div class="control-item">
+            <label>第二環 (個位)</label>
+            <select id="b2"></select>
+        </div>
+        <div class="control-item">
+            <label>第三環 (小數)</label>
+            <select id="b3"></select>
+        </div>
+        <div class="control-item">
+            <label>第四環 (倍率)</label>
+            <select id="b4"></select>
+        </div>
+        <div class="control-item">
+            <label>第五環 (誤差)</label>
+            <select id="b5"></select>
+        </div>
     </div>
 
     <div class="btn-group">
-        <button class="btn-share" onclick="sendShare()">分享到 LINE 聊天室</button>
-        <button class="btn-dl" onclick="takePic()">下載 PNG 圖片</button>
+        <button id="btn-share" class="btn btn-line">
+            <span class="icon">💬</span> 分享結果 (Flex)
+        </button>
+        <button id="btn-download" class="btn btn-secondary">
+            <span class="icon">⬇️</span> 下載圖片
+        </button>
     </div>
 
     <div id="status-bar">
-        <span class="status-dot" id="dot"></span>
-        <span id="st-text">LIFF 載入中...</span>
+        <div class="status-dot" id="status-dot"></div>
+        <span id="status-text">系統初始化中...</span>
     </div>
 </div>
 
-<script>
-    // --- 配置區 ---
-    const LIFF_ID = "2008918191-8EM4f0JH"; 
-
-    const colors = {
-        black: { h: '#000', v: 0, m: 1, t: null },
-        brown: { h: '#654321', v: 1, m: 10, t: 1 },
-        red: { h: '#f00', v: 2, m: 100, t: 2 },
-        orange: { h: '#f70', v: 3, m: 1000, t: null },
-        yellow: { h: '#ff0', v: 4, m: 10000, t: null },
-        green: { h: '#080', v: 5, m: 100000, t: 0.5 },
-        blue: { h: '#00f', v: 6, m: 1000000, t: 0.25 },
-        violet: { h: '#80f', v: 7, m: 10000000, t: 0.1 },
-        grey: { h: '#888', v: 8, m: null, t: 0.05 },
-        white: { h: '#fff', v: 9, m: null, t: null },
-        gold: { h: '#cfb53b', v: null, m: 0.1, t: 5 },
-        silver: { h: '#c0c0c0', v: null, m: 0.01, t: 10 }
-    };
-
-    // 初始化選單
-    function initMenu() {
-        const createOpt = (id, filter) => {
-            const el = document.getElementById(id);
-            Object.keys(colors).forEach(c => {
-                if(filter(colors[c])) {
-                    const opt = document.createElement('option');
-                    opt.value = c; opt.text = `${c} (${colors[c][filter.key] ?? ''})`;
-                    el.appendChild(opt);
-                }
-            });
-        };
-        const fv = x => x.v !== null; fv.key = 'v';
-        const fm = x => x.m !== null; fm.key = 'm';
-        const ft = x => x.t !== null; ft.key = 't';
-        createOpt('b1', fv); createOpt('b2', fv); createOpt('b3', fv);
-        createOpt('b4', fm); createOpt('b5', ft);
-        
-        // 預設值
-        document.getElementById('b1').value = 'brown';
-        document.getElementById('b4').value = 'red';
-        document.getElementById('b5').value = 'gold';
-    }
-
-    function calc() {
-        const getV = id => document.getElementById(id).value;
-        const s = [getV('b1'), getV('b2'), getV('b3'), getV('b4'), getV('b5')];
-        
-        s.forEach((c, i) => {
-            const hex = colors[c].h;
-            document.getElementById(`v${i+1}`).style.background = `linear-gradient(to right, #0004, ${hex} 20%, ${hex} 80%, #0004)`;
-        });
-
-        const total = (colors[s[0]].v * 100 + colors[s[1]].v * 10 + colors[s[2]].v) * colors[s[3]].m;
-        document.getElementById('res-val').innerText = total >= 1e6 ? (total/1e6).toFixed(2) + ' MΩ' : (total >= 1e3 ? (total/1e3).toFixed(2) + ' kΩ' : total.toFixed(1) + ' Ω');
-        document.getElementById('res-tol').innerText = `誤差 ±${colors[s[4]].t}%`;
-    }
-
-    function takePic() {
-        html2canvas(document.getElementById('capture-area')).then(canvas => {
-            const a = document.createElement('a'); a.download = 'resistor.png'; a.href = canvas.toDataURL(); a.click();
-        });
-    }
-
-    // ... 前方的顏色資料與 calc 函式保持不變 ...
-
-async function sendShare() {
-    // 檢查是否在 LINE 環境中或已登入
-    if (!liff.isLoggedIn()) {
-        // 未登入則觸發登入，登入後會自動跳回此頁面
-        alert("分享功能需要登入 LINE，即將引導至登入頁面。");
-        liff.login(); 
-        return;
-    }
-
-    const msg = `【五環電阻計算結果】\n阻值：${document.getElementById('res-val').innerText}\n${document.getElementById('res-tol').innerText}`;
-    
-    try {
-        // 只有登入後才能呼叫 shareTargetPicker
-        const res = await liff.shareTargetPicker([{ type: "text", text: msg }]);
-        if (res) {
-            alert("已成功分享！");
-        }
-    } catch(e) {
-        console.error(e);
-        alert("分享取消或發生錯誤");
-    }
-}
-
-// 修改後的初始化邏輯
-window.onload = async () => {
-    initMenu(); 
-    calc(); // 確保一進來就能計算
-    
-    try {
-        await liff.init({ 
-            liffId: LIFF_ID,
-            // 關鍵設定：在外部瀏覽器不自動執行登入
-            withLoginOnExternalBrowser: false 
-        });
-
-        // 更新狀態文字但不強制跳轉
-        const dot = document.getElementById('dot');
-        const stText = document.getElementById('st-text');
-
-        if (liff.isLoggedIn()) {
-            dot.classList.add('status-online');
-            stText.innerText = "LIFF 已連線 (已登入)";
-        } else {
-            dot.classList.remove('status-online');
-            stText.innerText = "訪客模式 (點擊分享才需登入)";
-        }
-
-    } catch(e) {
-        document.getElementById('st-text').innerText = "LIFF 初始化失敗: " + e.message;
-    }
-};
-</script>
+<script src="script.js"></script>
 </body>
 </html>
