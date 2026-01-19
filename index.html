@@ -144,32 +144,65 @@
         document.getElementById('res-tol').innerText = `誤差 ±${colors[s[4]].t}%`;
     }
 
-    async function sendShare() {
-        if(!liff.isLoggedIn()) { liff.login(); return; }
-        const msg = `【五環電阻計算結果】\n阻值：${document.getElementById('res-val').innerText}\n${document.getElementById('res-tol').innerText}`;
-        try {
-            await liff.shareTargetPicker([{ type: "text", text: msg }]);
-        } catch(e) { alert("分享取消或失敗"); }
-    }
-
     function takePic() {
         html2canvas(document.getElementById('capture-area')).then(canvas => {
             const a = document.createElement('a'); a.download = 'resistor.png'; a.href = canvas.toDataURL(); a.click();
         });
     }
 
-    // LIFF 啟動
-    window.onload = async () => {
-        initMenu(); calc();
-        try {
-            await liff.init({ liffId: LIFF_ID });
-            document.getElementById('dot').classList.add('status-online');
-            document.getElementById('st-text').innerText = "LIFF 已連線 (" + (liff.isInClient() ? "LINE App" : "外部瀏覽器") + ")";
-            if(!liff.isLoggedIn()) { liff.login(); }
-        } catch(e) {
-            document.getElementById('st-text').innerText = "初始化失敗: " + e.message;
+    // ... 前方的顏色資料與 calc 函式保持不變 ...
+
+async function sendShare() {
+    // 檢查是否在 LINE 環境中或已登入
+    if (!liff.isLoggedIn()) {
+        // 未登入則觸發登入，登入後會自動跳回此頁面
+        alert("分享功能需要登入 LINE，即將引導至登入頁面。");
+        liff.login(); 
+        return;
+    }
+
+    const msg = `【五環電阻計算結果】\n阻值：${document.getElementById('res-val').innerText}\n${document.getElementById('res-tol').innerText}`;
+    
+    try {
+        // 只有登入後才能呼叫 shareTargetPicker
+        const res = await liff.shareTargetPicker([{ type: "text", text: msg }]);
+        if (res) {
+            alert("已成功分享！");
         }
-    };
+    } catch(e) {
+        console.error(e);
+        alert("分享取消或發生錯誤");
+    }
+}
+
+// 修改後的初始化邏輯
+window.onload = async () => {
+    initMenu(); 
+    calc(); // 確保一進來就能計算
+    
+    try {
+        await liff.init({ 
+            liffId: LIFF_ID,
+            // 關鍵設定：在外部瀏覽器不自動執行登入
+            withLoginOnExternalBrowser: false 
+        });
+
+        // 更新狀態文字但不強制跳轉
+        const dot = document.getElementById('dot');
+        const stText = document.getElementById('st-text');
+
+        if (liff.isLoggedIn()) {
+            dot.classList.add('status-online');
+            stText.innerText = "LIFF 已連線 (已登入)";
+        } else {
+            dot.classList.remove('status-online');
+            stText.innerText = "訪客模式 (點擊分享才需登入)";
+        }
+
+    } catch(e) {
+        document.getElementById('st-text').innerText = "LIFF 初始化失敗: " + e.message;
+    }
+};
 </script>
 </body>
 </html>
