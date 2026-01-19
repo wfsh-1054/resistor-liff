@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>五環電阻計算器</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=3.0">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
@@ -34,40 +34,28 @@
     </div>
 
     <div class="controls">
-        <div class="control-item">
-            <label>第一環 (十位)</label>
-            <select id="b1"></select>
-        </div>
-        <div class="control-item">
-            <label>第二環 (個位)</label>
-            <select id="b2"></select>
-        </div>
-        <div class="control-item">
-            <label>第三環 (小數)</label>
-            <select id="b3"></select>
-        </div>
-        <div class="control-item">
-            <label>第四環 (倍率)</label>
-            <select id="b4"></select>
-        </div>
-        <div class="control-item">
-            <label>第五環 (誤差)</label>
-            <select id="b5"></select>
-        </div>
+        <div class="control-item"><label>第一環 (十位)</label><select id="b1"></select></div>
+        <div class="control-item"><label>第二環 (個位)</label><select id="b2"></select></div>
+        <div class="control-item"><label>第三環 (小數)</label><select id="b3"></select></div>
+        <div class="control-item"><label>第四環 (倍率)</label><select id="b4"></select></div>
+        <div class="control-item"><label>第五環 (誤差)</label><select id="b5"></select></div>
     </div>
 
     <div class="btn-group">
-    <button id="btn-share" class="btn btn-line" style="background-color: #06c755; color: white;">
-        <span class="icon">📤</span> 產生圖片並分享
-    </button>
+        <button id="btn-flex" class="btn btn-line">
+            <span class="icon">💬</span> 分享 Flex 卡片
+        </button>
+        <button id="btn-img" class="btn btn-secondary">
+            <span class="icon">🖼️</span> 分享/下載圖片
+        </button>
     </div>
 
     <div id="status-bar">
         <div class="status-dot" id="status-dot"></div>
-        <span id="status-text">系統初始化中...</span>
+        <span id="status-text">系統載入中 (v3.0)...</span>
     </div>
 </div>
 
-<script src="script.js"></script>
+<script src="script.js?v=3.0"></script>
 </body>
 </html>
