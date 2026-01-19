@@ -198,3 +198,60 @@ select {
 .status-dot.error {
     background-color: #e74c3c;
 }
+
+/* ... 上面原有的 CSS 保持不變 ... */
+
+/* 新增：圖片預覽彈窗 (解決手機無法下載問題) */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+.modal-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-content {
+    background: white;
+    padding: 10px;
+    border-radius: 12px;
+    max-width: 90%;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.modal-content img {
+    max-width: 100%;
+    border-radius: 8px;
+    display: block;
+}
+
+.modal-tip {
+    color: #fff;
+    margin-top: 15px;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.close-btn {
+    margin-top: 20px;
+    padding: 8px 20px;
+    background: transparent;
+    border: 1px solid white;
+    color: white;
+    border-radius: 20px;
+    cursor: pointer;
+}
