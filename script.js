@@ -95,24 +95,38 @@ function updateStatus(isOnline, text, isError = false) {
     els.statusDot.className = 'status-dot ' + (isError ? 'error' : (isOnline ? 'active' : ''));
 }
 
-// ========== Debug 版 Flex Message ==========
+// 修改後的 script.js 重點部分
+
 async function shareFlexMsg() {
     if (!liff.isLoggedIn()) {
         liff.login(); return;
     }
 
-    // 檢查 API 是否可用
-    if (!liff.isApiAvailable('shareTargetPicker')) {
-        alert("錯誤：您的 LINE 版本或此 LIFF 設定不支援 shareTargetPicker API。請檢查 Developer Console 的權限。");
-        return;
-    }
-
     const result = calculate();
-    const colorBoxes = result.colors.map(hex => ({
-        type: "box", layout: "vertical", backgroundColor: hex,
-        width: "16px", height: "16px", cornerRadius: "16px",
-        margin: "sm", borderColor: "#dddddd", borderWidth: "1px"
+    
+    // 我們用 Flex Box 來「畫」出五個色環
+    // 每個色環是一個寬度 15px 的直條
+    const bandViews = result.colors.map(hex => ({
+        type: "box",
+        layout: "vertical",
+        backgroundColor: hex,
+        width: "15px",
+        height: "40px",
+        margin: "2px" // 色環之間的間距
     }));
+
+    // 建立一個米黃色的電阻本體背景，把色環包進去
+    const resistorBodyView = {
+        type: "box",
+        layout: "horizontal",
+        backgroundColor: "#e6dcc8", // 電阻本體顏色
+        cornerRadius: "20px",       // 圓角讓它像橢圓
+        width: "200px",             // 電阻總寬度
+        height: "40px",             // 電阻高度
+        justifyContent: "center",   // 內容置中
+        alignItems: "center",
+        contents: bandViews         // 把上面的色環放進去
+    };
 
     const flexMsg = {
         type: "flex",
@@ -120,27 +134,53 @@ async function shareFlexMsg() {
         contents: {
             type: "bubble",
             body: {
-                type: "box", layout: "vertical",
+                type: "box",
+                layout: "vertical",
                 contents: [
-                    { type: "text", text: "電阻計算結果", weight: "bold", color: "#06c755", size: "sm" },
-                    { type: "text", text: result.displayVal, weight: "bold", size: "xxl", margin: "md" },
+                    // 標題
+                    { type: "text", text: "電阻計算結果", weight: "bold", color: "#06c755", size: "xs" },
+                    // 數值大字
+                    { type: "text", text: result.displayVal, weight: "bold", size: "3xl", margin: "md" },
+                    // 誤差小字
                     { type: "text", text: `誤差 ±${result.tol}%`, size: "sm", color: "#888888", margin: "xs" },
-                    { type: "box", layout: "horizontal", margin: "lg", justifyContent: "center", contents: colorBoxes }
+                    
+                    { type: "separator", margin: "lg" },
+                    
+                    // 視覺化區域標題
+                    { type: "text", text: "色環配置", size: "xs", color: "#aaaaaa", margin: "lg", align: "center" },
+                    
+                    // 這裡就是我們用程式碼「畫」出來的電阻
+                    {
+                        type: "box",
+                        layout: "vertical",
+                        margin: "sm",
+                        alignItems: "center",
+                        contents: [ resistorBodyView ]
+                    }
                 ]
+            },
+            footer: {
+                type: "box",
+                layout: "vertical",
+                contents: [{
+                    type: "button",
+                    action: { type: "uri", label: "開啟計算器", uri: "https://liff.line.me/" + LIFF_ID },
+                    style: "primary",
+                    color: "#06c755",
+                    height: "sm"
+                }]
             }
         }
     };
 
     try {
-        console.log("正在發送 Flex...");
         const res = await liff.shareTargetPicker([flexMsg]);
         if (res) {
-            alert("Flex 發送成功！"); // 如果這裡跳出來但沒收到，就是 JSON 格式被 LINE 濾掉了
-        } else {
-            alert("使用者關閉了分享視窗");
+            alert("分享成功！");
         }
     } catch (err) {
-        alert("Flex 發送報錯: " + err.code + "\n" + err.message);
+        // 常見錯誤：使用者沒選對象就關閉視窗，這不算是程式錯誤
+        console.log("分享流程結束: " + err.message);
     }
 }
 
@@ -211,3 +251,38 @@ window.onload = () => {
     calculate();
     initLiff();
 };
+
+// script.js 中的 downloadImage 改寫為單純顯示彈窗
+
+function showImageForSave() {
+    const btn = els.btnImg; // 假設這是您的圖片按鈕
+    btn.innerHTML = '處理中...';
+    
+    html2canvas(els.captureArea, { scale: 3, backgroundColor: "#ffffff" }).then(canvas => {
+        const imgData = canvas.toDataURL("image/png");
+        
+        // 建立一個全螢幕的遮罩，把圖片秀出來
+        const overlay = document.createElement('div');
+        overlay.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;";
+        
+        const img = new Image();
+        img.src = imgData;
+        img.style.cssText = "max-width:90%;border-radius:10px;border:2px solid #fff;";
+        
+        const tip = document.createElement('p');
+        tip.innerText = "請長按圖片 -> 儲存 / 轉傳";
+        tip.style.cssText = "color:#fff;margin-top:20px;font-size:18px;font-weight:bold;";
+        
+        const closeBtn = document.createElement('button');
+        closeBtn.innerText = "關閉";
+        closeBtn.style.cssText = "margin-top:20px;padding:10px 30px;background:#fff;border:none;border-radius:20px;";
+        closeBtn.onclick = () => document.body.removeChild(overlay);
+        
+        overlay.appendChild(img);
+        overlay.appendChild(tip);
+        overlay.appendChild(closeBtn);
+        document.body.appendChild(overlay);
+        
+        btn.innerHTML = '下載/分享圖片';
+    });
+}
